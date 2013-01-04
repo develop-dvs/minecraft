@@ -66,7 +66,7 @@ public class MainFrame extends javax.swing.JFrame {
                 + patch + S + "bin" + S + "jinput.jar;"
                 + Q
                 + " -Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q
-                + " net.minecraft.client.Minecraft " + nameField.getText().trim();
+                + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length==0)?"":" "+new String(passwordField.getPassword()));
 
         System.out.println(exec);
         try {

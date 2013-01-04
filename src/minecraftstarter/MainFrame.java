@@ -1,7 +1,7 @@
 package minecraftstarter;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,16 +77,24 @@ public class MainFrame extends javax.swing.JFrame {
     
     public String buildPatch() {
         String p = System.getenv("ProgramFiles")+(((SystemUtils.OS_ARCH.contains("64")) && osArch.getSelectedIndex()==0)?" (x86)":"");
+        if (osArch.getSelectedIndex()==1) {
+            p=p.replace(" (x86)", "");
+        }
         String j = "Java"+S+"jre"+javaVersion.getSelectedItem().toString()+S+"bin";
         return p+S+j;
     }
     
     public String buildMinecraftPatch() {
-        String dataFolder = System.getenv("APPDATA")+S+".minecraft";
-        if (new File("bin").exists() && new File("lib").exists()) {
-            dataFolder=MainFrame.class.getProtectionDomain().getCodeSource().toString();
+        String dataFolder = "";
+        if (new File("bin").exists() && new File("resources").exists()) {
+            try {
+                dataFolder=new File(MainFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().toString();
+            } catch (Exception ex) {
+                dataFolder = "";
+                System.err.println(ex.getLocalizedMessage());
+            }
         }
-        return dataFolder;
+        return (dataFolder.isEmpty())?System.getenv("APPDATA")+S+".minecraft":dataFolder;
     }
 
     /**

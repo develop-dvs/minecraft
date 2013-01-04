@@ -12,6 +12,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -57,8 +58,12 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     public void launch() {
-        String java = Q + getJavaHome() + S + "java" + ext + Q;
-
+        String java = getJavaHome() + S + "java" + ext;
+        if (!new File(java).exists()) {
+            JOptionPane.showMessageDialog(rootPane, java,"JRE not found",JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        java = Q + java + Q;
         String exec = java + " -Xms" + xms.getText().trim() + "m -Xmx" + xmx.getText().trim() + "m -cp " + Q
                 + patch + S + "bin" + S + "minecraft.jar;"
                 + patch + S + "bin" + S + "lwjgl.jar;"
@@ -181,7 +186,7 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Simple Minecraft Launcher");
+        setTitle("Simple Minecraft Starter (Launcher)");
         setType(java.awt.Window.Type.UTILITY);
 
         osArch.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
@@ -272,11 +277,11 @@ public class MainFrame extends javax.swing.JFrame {
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(xmx, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(26, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(passwordField)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)

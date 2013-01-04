@@ -6,4 +6,5 @@ Simple Minecraft Starter (Launcher)
  * save/restore login/password
  * autodetect current jre
  * manual select architecture (x32/64)
- * manual select jre version (6/7/8)
+ * manual select JRE version (6/7/8)
+ * manual setup -Xms & -Xmx

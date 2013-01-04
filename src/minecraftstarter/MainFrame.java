@@ -94,6 +94,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     public String buildPatch() {
+        // TODO: *nix
         String p = System.getenv("ProgramFiles") + (((SystemUtils.OS_ARCH.contains("64")) && osArch.getSelectedIndex() == 0) ? " (x86)" : "");
         if (osArch.getSelectedIndex() == 1) {
             p = p.replace(" (x86)", "");
@@ -214,7 +215,7 @@ public class MainFrame extends javax.swing.JFrame {
         });
 
         osType.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        osType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "WIN", "*NIX" }));
+        osType.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "WIN", "*nix" }));
         osType.setEnabled(false);
         osType.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -251,6 +252,11 @@ public class MainFrame extends javax.swing.JFrame {
 
         passwordField.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         passwordField.setToolTipText("Password ;)");
+        passwordField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                passwordFieldKeyReleased(evt);
+            }
+        });
 
         rBox.setToolTipText("Remember");
 
@@ -340,6 +346,12 @@ public class MainFrame extends javax.swing.JFrame {
             launch();
         }
     }//GEN-LAST:event_nameFieldKeyReleased
+
+    private void passwordFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_passwordFieldKeyReleased
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+            launch();
+        }
+    }//GEN-LAST:event_passwordFieldKeyReleased
 
     /**
      * @param args the command line arguments

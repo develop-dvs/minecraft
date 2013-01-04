@@ -497,7 +497,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         urlText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        urlText.setText("http://download.icraft.su");
 
         jLabel5.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel5.setText("URL:");

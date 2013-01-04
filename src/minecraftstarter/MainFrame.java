@@ -1,10 +1,16 @@
 package minecraftstarter;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -12,19 +18,25 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import proxy.Jhttpp2Server;
 
 /**
  *
  * @author Crimson
  */
-public class MainFrame extends javax.swing.JFrame {
+public class MainFrame extends javax.swing.JFrame implements IFind {
 
     private boolean def;
     private String S = SystemUtils.FILE_SEPARATOR;
     private String Q = "\"";
     private String ext = ".exe";
     private String patch = "";
+    private Jhttpp2Server server;
+    private Process process;
 
     /**
      * Creates new form MainFrame
@@ -56,11 +68,23 @@ public class MainFrame extends javax.swing.JFrame {
         def = true;
 
     }
+    
+    @Override
+    public void find(String str) {
+        System.out.println("Find: "+str);
+        if (server!=null) {
+            server.shutdownServer();
+        }
+        if (process!=null) {
+            process.destroy();
+        }
+        consoleLog.setText(str);
+    }
 
     public void launch() {
         String java = getJavaHome() + S + "java" + ext;
         if (!new File(java).exists()) {
-            JOptionPane.showMessageDialog(rootPane, java,"JRE not found",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(rootPane, java, "JRE not found", JOptionPane.ERROR_MESSAGE);
             return;
         }
         java = Q + java + Q;
@@ -71,17 +95,19 @@ public class MainFrame extends javax.swing.JFrame {
                 + patch + S + "bin" + S + "jinput.jar;"
                 + Q
                 + " -Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q
-                + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length==0)?"":" "+new String(passwordField.getPassword()));
+                + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length == 0) ? "" : " " + new String(passwordField.getPassword()));
 
-        System.out.println(exec);
-        try {
-            Runtime.getRuntime().exec(exec);
-            writeUsername(patch);
-        } catch (Exception ex) {
-            System.err.println(ex.getLocalizedMessage());
-        }
+        //System.out.println(exec);
+        sendAuth();
+        /*
+         try {
+         Runtime.getRuntime().exec(exec);
+         writeUsername(patch);
+         } catch (Exception ex) {
+         System.err.println(ex.getLocalizedMessage());
+         }
 
-        System.exit(1);
+         System.exit(1);*/
 
     }
 
@@ -162,6 +188,116 @@ public class MainFrame extends javax.swing.JFrame {
         return cipher;
     }
 
+    private void update() {
+        int sw = typeLauncher.getSelectedIndex();
+        switch (sw) {
+            case 0:
+            default:
+                pathText.setText("");
+                patternText.setText("");
+                matchStr.setText("");
+                runClass.setText("");
+                break;
+            case 1:
+                pathText.setText("/site/launcher.php");
+                patternText.setText("login={login}&password={password}&action=auth");
+                matchStr.setText("sessionId");
+                runClass.setText("net.sashok724.launcher.run.I");
+                break;
+        }
+    }
+
+    private String buildPattern() {
+        String ret = patternText.getText().trim();
+        ret = ret.replace("{login}", nameField.getText().trim());
+        ret = ret.replace("{password}", new String(passwordField.getPassword()));
+        return ret;
+    }
+
+    private void sendAuth() {
+        try {
+            String urlParameters = buildPattern();
+            URL url = new URL("http://" + urlText.getText().trim() + pathText.getText().trim());
+            System.out.println(url + "_" + urlParameters);
+            URLConnection conn = url.openConnection();
+
+            conn.setDoOutput(true);
+
+            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+
+            writer.write(urlParameters);
+            writer.flush();
+
+            String line;
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            outArea.setText("");
+            while ((line = reader.readLine()) != null) {
+                outArea.append(line + "\n");
+            }
+            writer.close();
+            reader.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static String setTextButton(JButton jButton, String header, String ext, String text) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle(header);
+        fileChooser.setFileFilter(new FileNameExtensionFilter(text, ext));
+        if (fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+            //jButton.setText(prefix+fileChooser.getSelectedFile().getName().toString());
+            jButton.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
+        }
+        return "";
+    }
+
+    public void runExtJar() {
+        String java = getJavaHome() + S + "java" + ext;
+        java = Q + java + Q;
+        String exec = java + " -Dhttp.proxyHost=" + proxyHost.getText() + " -Dhttp.proxyPort=" + proxyPort.getText() + " -jar " + jarExPatch.getText();
+
+        ArrayList<String> params = new ArrayList<String>();
+        params.add(java);
+        params.add("-Dhttp.proxyHost=" + proxyHost.getText());
+        params.add("-Dhttp.proxyPort=" + proxyPort.getText());
+        
+        params.add("-Dsun.java2d.noddraw=true");
+        params.add("-Dsun.java2d.d3d=false");
+        params.add("-Dsun.java2d.opengl=false");
+        //params.add("-Dsun.java2d.pmoffscreen=false");
+        
+        params.add("-classpath");
+        params.add(jarExPatch.getText());
+        params.add("net.sashok724.launcher.run.I");
+                        
+        //params.add("-jar");
+        //params.add(jarExPatch.getText());
+
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(params);
+            process = pb.start();
+            
+            //System.out.println(exec);
+            //Runtime.getRuntime().exec(exec);
+        } catch (Exception ex) {
+            System.err.println(ex.getLocalizedMessage());
+        }
+    }
+    /*public static void setTextForm(JTextField textField, String header)
+     {
+     JFileChooser fileChooser = new JFileChooser();
+     fileChooser.setCurrentDirectory(new java.io.File("."));
+     fileChooser.setDialogTitle(header);
+     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+     fileChooser.setAcceptAllFileFilterUsed(false);
+     if (fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
+     {
+     textField.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
+     }
+     }*/
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -187,18 +323,33 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         javaVersion = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
-        jTextField1 = new javax.swing.JTextField();
+        urlText = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        outArea = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
+        typeLauncher = new javax.swing.JComboBox();
+        jLabel9 = new javax.swing.JLabel();
+        pathText = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        patternText = new javax.swing.JTextField();
+        jPanel4 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        consoleLog = new javax.swing.JTextArea();
+        jarExPatch = new javax.swing.JButton();
+        penGo = new javax.swing.JButton();
+        proxyHost = new javax.swing.JTextField();
+        proxyPort = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        runClass = new javax.swing.JTextField();
+        matchStr = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Simple Minecraft Starter (Divasoft, inc.)");
         setResizable(false);
-        setType(java.awt.Window.Type.UTILITY);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -245,7 +396,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(rBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(launchButton, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE)
+                .addComponent(launchButton, javax.swing.GroupLayout.DEFAULT_SIZE, 75, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -345,8 +496,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jTextField1.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jTextField1.setText("http://icraft.su/site/launcher.php");
+        urlText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        urlText.setText("http://download.icraft.su");
 
         jLabel5.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel5.setText("URL:");
@@ -354,51 +505,183 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel6.setText("MD5:");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        outArea.setColumns(20);
+        outArea.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        outArea.setRows(5);
+        jScrollPane1.setViewportView(outArea);
 
         jLabel7.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel7.setText("SSID:");
 
         jTextField2.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
 
+        typeLauncher.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        typeLauncher.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "<!-- DONT USE -->", "sashok724 launcher", "other" }));
+        typeLauncher.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                typeLauncherItemStateChanged(evt);
+            }
+        });
+
+        jLabel9.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel9.setText("Type:");
+
+        pathText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+
+        jLabel10.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel10.setText("Path:");
+
+        jLabel8.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel8.setText("PT:");
+
+        patternText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel6)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
-                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1)))
+                    .addComponent(typeLauncher, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pathText))
+                    .addComponent(patternText, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(12, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5))
+                    .addComponent(typeLauncher, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5)
+                    .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(patternText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addGap(0, 35, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+
+        consoleLog.setEditable(false);
+        consoleLog.setColumns(20);
+        consoleLog.setRows(5);
+        consoleLog.addHierarchyListener(new java.awt.event.HierarchyListener() {
+            public void hierarchyChanged(java.awt.event.HierarchyEvent evt) {
+                consoleLogHierarchyChanged(evt);
+            }
+        });
+        consoleLog.addInputMethodListener(new java.awt.event.InputMethodListener() {
+            public void inputMethodTextChanged(java.awt.event.InputMethodEvent evt) {
+                consoleLogInputMethodTextChanged(evt);
+            }
+            public void caretPositionChanged(java.awt.event.InputMethodEvent evt) {
+            }
+        });
+        consoleLog.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                consoleLogPropertyChange(evt);
+            }
+        });
+        consoleLog.addVetoableChangeListener(new java.beans.VetoableChangeListener() {
+            public void vetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {
+                consoleLogVetoableChange(evt);
+            }
+        });
+        jScrollPane2.setViewportView(consoleLog);
+
+        jarExPatch.setText("Select launcher.jar");
+        jarExPatch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jarExPatchActionPerformed(evt);
+            }
+        });
+
+        penGo.setText("GO!");
+        penGo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                penGoActionPerformed(evt);
+            }
+        });
+
+        proxyHost.setText("localhost");
+
+        proxyPort.setText("8088");
+
+        jButton1.setText("Proxy Start");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(runClass)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+                        .addComponent(jarExPatch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(penGo))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+                        .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(matchStr)))
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jarExPatch)
+                    .addComponent(penGo))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(runClass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1)
+                    .addComponent(matchStr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -411,7 +694,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -423,7 +707,9 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -456,6 +742,45 @@ public class MainFrame extends javax.swing.JFrame {
             launch();
         }
     }//GEN-LAST:event_passwordFieldKeyReleased
+
+    private void typeLauncherItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_typeLauncherItemStateChanged
+        update();
+    }//GEN-LAST:event_typeLauncherItemStateChanged
+
+    private void jarExPatchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jarExPatchActionPerformed
+        setTextButton(jarExPatch, "Select jar", "jar", "Jar file (*.jar)");
+    }//GEN-LAST:event_jarExPatchActionPerformed
+
+    private void penGoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_penGoActionPerformed
+        runExtJar();
+    }//GEN-LAST:event_penGoActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        server = new Jhttpp2Server(true, Integer.parseInt(proxyPort.getText().trim()),this,matchStr.getText());
+
+        if (Jhttpp2Server.error) {
+            System.out.println("Error: " + Jhttpp2Server.error_msg);
+        } else {
+            new Thread(server).start();
+            System.out.println("Running on port " + server.port);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void consoleLogPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_consoleLogPropertyChange
+
+    }//GEN-LAST:event_consoleLogPropertyChange
+
+    private void consoleLogVetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {//GEN-FIRST:event_consoleLogVetoableChange
+
+    }//GEN-LAST:event_consoleLogVetoableChange
+
+    private void consoleLogHierarchyChanged(java.awt.event.HierarchyEvent evt) {//GEN-FIRST:event_consoleLogHierarchyChanged
+
+    }//GEN-LAST:event_consoleLogHierarchyChanged
+
+    private void consoleLogInputMethodTextChanged(java.awt.event.InputMethodEvent evt) {//GEN-FIRST:event_consoleLogInputMethodTextChanged
+
+    }//GEN-LAST:event_consoleLogInputMethodTextChanged
 
     /**
      * @param args the command line arguments
@@ -493,27 +818,43 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextArea consoleLog;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JButton jarExPatch;
     private javax.swing.JComboBox javaVersion;
     private javax.swing.JButton launchButton;
+    private javax.swing.JTextField matchStr;
     private javax.swing.JTextField nameField;
     private javax.swing.JComboBox osArch;
     private javax.swing.JComboBox osType;
+    private javax.swing.JTextArea outArea;
     private javax.swing.JPasswordField passwordField;
+    private javax.swing.JTextField pathText;
+    private javax.swing.JTextField patternText;
+    private javax.swing.JButton penGo;
+    private javax.swing.JTextField proxyHost;
+    private javax.swing.JTextField proxyPort;
     private javax.swing.JCheckBox rBox;
+    private javax.swing.JTextField runClass;
+    private javax.swing.JComboBox typeLauncher;
+    private javax.swing.JTextField urlText;
     private javax.swing.JTextField xms;
     private javax.swing.JTextField xmx;
     // End of variables declaration//GEN-END:variables

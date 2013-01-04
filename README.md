@@ -9,3 +9,7 @@ Simple Minecraft Starter (Launcher|Namechanger)
  * manual select architecture (x32/64)
  * manual select JRE version (6/7/8)
  * manual setup -Xms & -Xmx
+
+Pentest
+=========
+ * can autofind sessionId and start without MD5 check client

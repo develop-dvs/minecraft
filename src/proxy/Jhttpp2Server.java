@@ -14,6 +14,8 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 import minecraftstarter.IFind;
 
@@ -58,7 +60,7 @@ public class Jhttpp2Server implements Runnable {
     public boolean www_server = true;
     private String matchStr="sessionId";
     private IFind core;
-    private Thread thread;
+    //private Thread thread;
 
     void init() {
         try {
@@ -90,7 +92,7 @@ public class Jhttpp2Server implements Runnable {
             return;
         }
         
-        thread=new Thread(this);
+        //thread=new Thread(this);
         //if (debug) remote_debug_vector=new Vector();
         //remote_debug=false;
     }
@@ -445,7 +447,11 @@ public class Jhttpp2Server implements Runnable {
 
     public void shutdownServer() {
         closeLog();
-        thread.stop();
-        //System.exit(0);
+        try {
+            listen.close();
+            //System.exit(0);
+        } catch (IOException ex) {
+            writeLog("Jhttpp2Server.shutdownServer: " + ex.getMessage());
+        }
     }
 }

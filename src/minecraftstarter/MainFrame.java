@@ -37,6 +37,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     private String patch = "";
     private Jhttpp2Server server;
     private Process process;
+    private Thread proxyThread;
 
     /**
      * Creates new form MainFrame
@@ -65,6 +66,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         dumpContents(patch);
 
         nameField.requestFocusInWindow();
+        proxy();
         def = true;
 
     }
@@ -72,12 +74,12 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     @Override
     public void find(String str) {
         System.out.println("Find: "+str);
-        if (server!=null) {
+        /*if (server!=null) {
             server.shutdownServer();
         }
         if (process!=null) {
             process.destroy();
-        }
+        }*/
         consoleLog.setText(str);
     }
 
@@ -189,22 +191,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     }
 
     private void update() {
-        int sw = typeLauncher.getSelectedIndex();
-        switch (sw) {
-            case 0:
-            default:
-                pathText.setText("");
-                patternText.setText("");
-                matchStr.setText("");
-                runClass.setText("");
-                break;
-            case 1:
-                pathText.setText("/site/launcher.php");
-                patternText.setText("login={login}&password={password}&action=auth");
-                matchStr.setText("sessionId");
-                runClass.setText("net.sashok724.launcher.run.I");
-                break;
-        }
+
     }
 
     private String buildPattern() {
@@ -230,9 +217,9 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
 
             String line;
             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            outArea.setText("");
+            consoleLog.setText("");
             while ((line = reader.readLine()) != null) {
-                outArea.append(line + "\n");
+                consoleLog.append(line + "\n");
             }
             writer.close();
             reader.close();
@@ -255,7 +242,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     public void runExtJar() {
         String java = getJavaHome() + S + "java" + ext;
         java = Q + java + Q;
-        String exec = java + " -Dhttp.proxyHost=" + proxyHost.getText() + " -Dhttp.proxyPort=" + proxyPort.getText() + " -jar " + jarExPatch.getText();
+        //String exec = java + " -Dhttp.proxyHost=" + proxyHost.getText() + " -Dhttp.proxyPort=" + proxyPort.getText() + " -jar " + jarExPatch.getText();
 
         ArrayList<String> params = new ArrayList<String>();
         params.add(java);
@@ -269,7 +256,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         
         params.add("-classpath");
         params.add(jarExPatch.getText());
-        params.add("net.sashok724.launcher.run.I");
+        params.add(jComboBox1.getSelectedItem().toString());
                         
         //params.add("-jar");
         //params.add(jarExPatch.getText());
@@ -284,6 +271,35 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         } catch (Exception ex) {
             System.err.println(ex.getLocalizedMessage());
         }
+    }
+    
+    private void proxy() {
+        if (proxyButton.isSelected()) {
+            proxyButton.setText("Proxy Stop");
+            server = new Jhttpp2Server(true, Integer.parseInt(proxyPort.getText().trim()),this,patternText.getText());
+
+            if (Jhttpp2Server.error) {
+                consoleLog.append("Error: " + Jhttpp2Server.error_msg);
+                proxyButton.setSelected(false);
+            } else {
+                proxyThread = new Thread(server);
+                proxyThread.setName("Proxy");
+                proxyThread.start();
+                consoleLog.append("Proxy server running on port " + server.port+"\n");
+                penetratePanel.setEnabled(true);
+            }
+        } else {
+            proxyButton.setText("Proxy Start");
+            if (server!=null) {
+                server.shutdownServer();
+                if (proxyThread!=null) {
+                    proxyThread.stop();
+                    consoleLog.append("Proxy server shutdown\n");
+                }
+            }
+            penetratePanel.setEnabled(false);
+        }
+        
     }
     /*public static void setTextForm(JTextField textField, String header)
      {
@@ -322,30 +338,25 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         xms = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         javaVersion = new javax.swing.JComboBox();
-        jPanel3 = new javax.swing.JPanel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        monitorPanel = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        consoleLog = new javax.swing.JTextArea();
+        proxyHost = new javax.swing.JTextField();
+        proxyPort = new javax.swing.JTextField();
+        proxyButton = new javax.swing.JToggleButton();
+        penetratePanel = new javax.swing.JPanel();
         urlText = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        outArea = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
-        typeLauncher = new javax.swing.JComboBox();
-        jLabel9 = new javax.swing.JLabel();
         pathText = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         patternText = new javax.swing.JTextField();
-        jPanel4 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        consoleLog = new javax.swing.JTextArea();
         jarExPatch = new javax.swing.JButton();
         penGo = new javax.swing.JButton();
-        proxyHost = new javax.swing.JTextField();
-        proxyPort = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        runClass = new javax.swing.JTextField();
-        matchStr = new javax.swing.JTextField();
+        jComboBox1 = new javax.swing.JComboBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Simple Minecraft Starter (Divasoft, inc.)");
@@ -396,7 +407,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(rBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(launchButton, javax.swing.GroupLayout.DEFAULT_SIZE, 75, Short.MAX_VALUE)
+                .addComponent(launchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -494,127 +505,76 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addContainerGap())
         );
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        consoleLog.setEditable(false);
+        consoleLog.setColumns(20);
+        consoleLog.setRows(5);
+        jScrollPane2.setViewportView(consoleLog);
+
+        proxyHost.setText("localhost");
+
+        proxyPort.setText("8088");
+
+        proxyButton.setText("Proxy Start");
+        proxyButton.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                proxyButtonItemStateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout monitorPanelLayout = new javax.swing.GroupLayout(monitorPanel);
+        monitorPanel.setLayout(monitorPanelLayout);
+        monitorPanelLayout.setHorizontalGroup(
+            monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, monitorPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, monitorPanelLayout.createSequentialGroup()
+                        .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(proxyButton)
+                        .addGap(0, 146, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        monitorPanelLayout.setVerticalGroup(
+            monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(monitorPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(proxyButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Monitor", monitorPanel);
+
+        penetratePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         urlText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
 
         jLabel5.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel5.setText("URL:");
 
-        jLabel6.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jLabel6.setText("MD5:");
-
-        outArea.setColumns(20);
-        outArea.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        outArea.setRows(5);
-        jScrollPane1.setViewportView(outArea);
-
         jLabel7.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel7.setText("SSID:");
 
         jTextField2.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
 
-        typeLauncher.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        typeLauncher.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "<!-- DONT USE -->", "sashok724 launcher", "other" }));
-        typeLauncher.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                typeLauncherItemStateChanged(evt);
-            }
-        });
-
-        jLabel9.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jLabel9.setText("Type:");
-
         pathText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
 
         jLabel10.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jLabel10.setText("Path:");
+        jLabel10.setText("ADR:");
 
         jLabel8.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel8.setText("PT:");
 
         patternText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(typeLauncher, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel10)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pathText))
-                    .addComponent(patternText, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addContainerGap())
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap(12, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(typeLauncher, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5)
-                    .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(patternText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-
-        consoleLog.setEditable(false);
-        consoleLog.setColumns(20);
-        consoleLog.setRows(5);
-        consoleLog.addHierarchyListener(new java.awt.event.HierarchyListener() {
-            public void hierarchyChanged(java.awt.event.HierarchyEvent evt) {
-                consoleLogHierarchyChanged(evt);
-            }
-        });
-        consoleLog.addInputMethodListener(new java.awt.event.InputMethodListener() {
-            public void inputMethodTextChanged(java.awt.event.InputMethodEvent evt) {
-                consoleLogInputMethodTextChanged(evt);
-            }
-            public void caretPositionChanged(java.awt.event.InputMethodEvent evt) {
-            }
-        });
-        consoleLog.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                consoleLogPropertyChange(evt);
-            }
-        });
-        consoleLog.addVetoableChangeListener(new java.beans.VetoableChangeListener() {
-            public void vetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {
-                consoleLogVetoableChange(evt);
-            }
-        });
-        jScrollPane2.setViewportView(consoleLog);
+        patternText.setText("sessionId");
 
         jarExPatch.setText("Select launcher.jar");
         jarExPatch.addActionListener(new java.awt.event.ActionListener() {
@@ -630,59 +590,64 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             }
         });
 
-        proxyHost.setText("localhost");
+        jComboBox1.setEditable(true);
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "net.sashok724.launcher.run.I", "net.sashok724.launcher.run.MainClass", " " }));
 
-        proxyPort.setText("8088");
-
-        jButton1.setText("Proxy Start");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+        javax.swing.GroupLayout penetratePanelLayout = new javax.swing.GroupLayout(penetratePanel);
+        penetratePanel.setLayout(penetratePanelLayout);
+        penetratePanelLayout.setHorizontalGroup(
+            penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(penetratePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(runClass)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.Alignment.TRAILING, 0, 357, Short.MAX_VALUE)
+                    .addGroup(penetratePanelLayout.createSequentialGroup()
                         .addComponent(jarExPatch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(penGo))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
-                        .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(penetratePanelLayout.createSequentialGroup()
+                        .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(matchStr)))
+                        .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(urlText)
+                            .addComponent(patternText)
+                            .addComponent(pathText, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addContainerGap())
         );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+        penetratePanelLayout.setVerticalGroup(
+            penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(penetratePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(patternText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jarExPatch)
                     .addComponent(penGo))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(runClass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(matchStr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        jTabbedPane1.addTab("Info", penetratePanel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -693,8 +658,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jTabbedPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -705,9 +669,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1)
                 .addContainerGap())
         );
 
@@ -742,10 +704,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         }
     }//GEN-LAST:event_passwordFieldKeyReleased
 
-    private void typeLauncherItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_typeLauncherItemStateChanged
-        update();
-    }//GEN-LAST:event_typeLauncherItemStateChanged
-
     private void jarExPatchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jarExPatchActionPerformed
         setTextButton(jarExPatch, "Select jar", "jar", "Jar file (*.jar)");
     }//GEN-LAST:event_jarExPatchActionPerformed
@@ -754,32 +712,9 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         runExtJar();
     }//GEN-LAST:event_penGoActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        server = new Jhttpp2Server(true, Integer.parseInt(proxyPort.getText().trim()),this,matchStr.getText());
-
-        if (Jhttpp2Server.error) {
-            System.out.println("Error: " + Jhttpp2Server.error_msg);
-        } else {
-            new Thread(server).start();
-            System.out.println("Running on port " + server.port);
-        }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void consoleLogPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_consoleLogPropertyChange
-
-    }//GEN-LAST:event_consoleLogPropertyChange
-
-    private void consoleLogVetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {//GEN-FIRST:event_consoleLogVetoableChange
-
-    }//GEN-LAST:event_consoleLogVetoableChange
-
-    private void consoleLogHierarchyChanged(java.awt.event.HierarchyEvent evt) {//GEN-FIRST:event_consoleLogHierarchyChanged
-
-    }//GEN-LAST:event_consoleLogHierarchyChanged
-
-    private void consoleLogInputMethodTextChanged(java.awt.event.InputMethodEvent evt) {//GEN-FIRST:event_consoleLogInputMethodTextChanged
-
-    }//GEN-LAST:event_consoleLogInputMethodTextChanged
+    private void proxyButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_proxyButtonItemStateChanged
+       proxy();
+    }//GEN-LAST:event_proxyButtonItemStateChanged
 
     /**
      * @param args the command line arguments
@@ -818,41 +753,36 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea consoleLog;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JButton jarExPatch;
     private javax.swing.JComboBox javaVersion;
     private javax.swing.JButton launchButton;
-    private javax.swing.JTextField matchStr;
+    private javax.swing.JPanel monitorPanel;
     private javax.swing.JTextField nameField;
     private javax.swing.JComboBox osArch;
     private javax.swing.JComboBox osType;
-    private javax.swing.JTextArea outArea;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JTextField pathText;
     private javax.swing.JTextField patternText;
     private javax.swing.JButton penGo;
+    private javax.swing.JPanel penetratePanel;
+    private javax.swing.JToggleButton proxyButton;
     private javax.swing.JTextField proxyHost;
     private javax.swing.JTextField proxyPort;
     private javax.swing.JCheckBox rBox;
-    private javax.swing.JTextField runClass;
-    private javax.swing.JComboBox typeLauncher;
     private javax.swing.JTextField urlText;
     private javax.swing.JTextField xms;
     private javax.swing.JTextField xmx;

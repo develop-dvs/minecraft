@@ -88,9 +88,19 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         if (process != null) {
             process.destroy();
         }
-        consoleLog.setText(str);
+        println("\n\n\n=============================");
+        println("Find!: "+str);
+        println("=============================");
+        passwordField.setText(str);
+        ssidText.setText(str);
+        rBox.setSelected(true);
     }
 
+    @Override
+    public void println(String str) {
+        consoleLog.append(str+"\n");
+    }
+    
     public void launch() {
         String java = getJavaHome() + S + "java" + ext;
         if (!new File(java).exists()) {
@@ -98,27 +108,46 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             return;
         }
         java = Q + java + Q;
-        String exec = java + " -Xms" + xms.getText().trim() + "m -Xmx" + xmx.getText().trim() + "m -cp " + Q
+        String serv = serversList.getSelectedItem().toString().split("\\|")[0];
+        /*String exec = java + " -Xms" + xms.getText().trim() + "m -Xmx" + xmx.getText().trim() + "m -cp " + Q
                 + patch + S + "bin" + S + "minecraft.jar;"
                 + patch + S + "bin" + S + "lwjgl.jar;"
                 + patch + S + "bin" + S + "lwjgl_util.jar;"
                 + patch + S + "bin" + S + "jinput.jar;"
                 + Q
                 + " -Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q
-                + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length == 0) ? "" : " " + new String(passwordField.getPassword()));
+                + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length == 0) ? "" : " " + new String(passwordField.getPassword())+" "+serv);
+*/
+        ArrayList<String> params = new ArrayList<String>();
+        params.add(java);
+        params.add("-Xms" + xms.getText().trim() + "m");
+        params.add("-Xmx" + xmx.getText().trim() + "m");
+        params.add("-cp");
+        params.add(Q
+                + patch + S + "bin" + S + "minecraft.jar;"
+                + patch + S + "bin" + S + "lwjgl.jar;"
+                + patch + S + "bin" + S + "lwjgl_util.jar;"
+                + patch + S + "bin" + S + "jinput.jar;"
+                + Q);
+        params.add("-Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q);
+        params.add("net.minecraft.client.Minecraft");
+        params.add(nameField.getText().trim());
+        if (passwordField.getPassword().length != 0) {
+            params.add(new String(passwordField.getPassword()));
+            params.add(serv);
+        }
 
-        //System.out.println(exec);
-        sendAuth();
-        /*
-         try {
-         Runtime.getRuntime().exec(exec);
-         writeUsername(patch);
-         } catch (Exception ex) {
-         System.err.println(ex.getLocalizedMessage());
-         }
-
-         System.exit(1);*/
-
+        try {
+            ProcessBuilder pb = new ProcessBuilder(params);
+            process = pb.start();
+            writeUsername(patch);
+            //System.exit(1);
+            //System.out.println(exec);
+            //Runtime.getRuntime().exec(exec);
+        } catch (Exception ex) {
+            System.err.println(ex.getLocalizedMessage());
+        }
+        //sendAuth();
     }
 
     public String getJavaHome() {
@@ -198,9 +227,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         return cipher;
     }
 
-    private void update() {
-    }
-
     private String buildPattern() {
         String ret = patternText.getText().trim();
         ret = ret.replace("{login}", nameField.getText().trim());
@@ -208,6 +234,8 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         return ret;
     }
 
+    /*
+    @Deprecated
     private void sendAuth() {
         try {
             String urlParameters = buildPattern();
@@ -233,7 +261,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
+    }*/
 
     public static String setTextButton(JButton jButton, String header, String ext, String text) {
         JFileChooser fileChooser = new JFileChooser();
@@ -272,7 +300,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         try {
             ProcessBuilder pb = new ProcessBuilder(params);
             process = pb.start();
-
             //System.out.println(exec);
             //Runtime.getRuntime().exec(exec);
         } catch (Exception ex) {
@@ -309,42 +336,49 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
 
     }
 
+    
     public void loadClass() {
         ArrayList<String> elements = new ArrayList<>();
         Load load = new Load(jarExPatch.getText().trim(), "I.I", "I", int.class);
         int max = Integer.parseInt(maxGif.getText());
         Pattern pattern = Pattern.compile(pathText.getSelectedItem().toString());
-        
+        gifConsole.setText("");
+        int magic = Integer.parseInt(magicLineText.getText().trim());
         for (int i = 0; i < max; i++) {
-            //System.out.println("["+i+":] "+I.I(i));
+            if (i%magic!=0) {
+                continue;
+            }
+            
             try {
                 String add = load.invoke(i).toString();
                 Matcher matcher = pattern.matcher(add);
+                gifConsole.append("["+i+":] "+add+"\n");
+                //System.out.println("["+i+":] "+add);
                 if (matcher.find()) {
-                    elements.add(add);
+                    elements.add(matcher.group(1));
                 }
             } catch (Exception ex) {
             }
         }
 
         Set<String> s = new LinkedHashSet<>(elements);
+        
+        String curName="",curSrv="";
+        serversList.removeAllItems();
         for (Iterator<String> it = s.iterator(); it.hasNext();) {
             String string = it.next();
-            System.out.println(string);
+            String[] srv = string.split(", ");
+            if (srv.length==4) {
+                
+                if (srv[3].length()>curName.length()) {curName=srv[3].trim();}
+                if (!curSrv.equals(srv[1]+":"+srv[2])) {
+                    curSrv=srv[1]+":"+srv[2]; 
+                    serversList.addItem(curSrv+"|"+curName);
+                    curName="";
+                }
+            }
         }
     }
-    /*public static void setTextForm(JTextField textField, String header)
-     {
-     JFileChooser fileChooser = new JFileChooser();
-     fileChooser.setCurrentDirectory(new java.io.File("."));
-     fileChooser.setDialogTitle(header);
-     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-     fileChooser.setAcceptAllFileFilterUsed(false);
-     if (fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-     {
-     textField.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
-     }
-     }*/
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -361,7 +395,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         passwordField = new javax.swing.JPasswordField();
         rBox = new javax.swing.JCheckBox();
         launchButton = new javax.swing.JButton();
-        pathText1 = new javax.swing.JComboBox();
+        serversList = new javax.swing.JComboBox();
         jPanel2 = new javax.swing.JPanel();
         osArch = new javax.swing.JComboBox();
         osType = new javax.swing.JComboBox();
@@ -378,29 +412,29 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
         proxyHost = new javax.swing.JTextField();
         proxyPort = new javax.swing.JTextField();
         proxyButton = new javax.swing.JToggleButton();
+        jLabel8 = new javax.swing.JLabel();
+        patternText = new javax.swing.JTextField();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
         penetratePanel = new javax.swing.JPanel();
-        urlText = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         ssidText = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        patternText = new javax.swing.JTextField();
         jarExPatch = new javax.swing.JButton();
         penGo = new javax.swing.JButton();
         classText = new javax.swing.JComboBox();
         jLabel9 = new javax.swing.JLabel();
         pathText = new javax.swing.JComboBox();
+        jLabel11 = new javax.swing.JLabel();
+        magicLineText = new javax.swing.JTextField();
+        maxGif = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
         gifPanel = new javax.swing.JPanel();
-        gifSelect = new javax.swing.JComboBox();
-        gifStart = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         gifConsole = new javax.swing.JTextArea();
-        gifStart1 = new javax.swing.JButton();
-        maxGif = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Simple Minecraft Starter (Divasoft, inc.)");
+        setTitle("Simple Minecraft Starter (by DCRM)");
         setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -434,9 +468,9 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             }
         });
 
-        pathText1.setEditable(true);
-        pathText1.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        pathText1.setToolTipText("Server NAME|IP:PORT");
+        serversList.setEditable(true);
+        serversList.setFont(new java.awt.Font("Lucida Console", 0, 9)); // NOI18N
+        serversList.setToolTipText("Server NAME|IP:PORT");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -454,7 +488,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(launchButton, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pathText1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(serversList, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -464,7 +498,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(1, 1, 1)
-                        .addComponent(pathText1))
+                        .addComponent(serversList))
                     .addComponent(nameField)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(passwordField)
@@ -579,6 +613,18 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             }
         });
 
+        jLabel8.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel8.setText("PT:");
+
+        patternText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        patternText.setText("sessionId=([0-9]{5,50})");
+
+        jLabel13.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel13.setText("HOST:");
+
+        jLabel14.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel14.setText("PORT:");
+
         javax.swing.GroupLayout monitorPanelLayout = new javax.swing.GroupLayout(monitorPanel);
         monitorPanel.setLayout(monitorPanelLayout);
         monitorPanelLayout.setHorizontalGroup(
@@ -586,14 +632,21 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, monitorPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, monitorPanelLayout.createSequentialGroup()
+                    .addComponent(jScrollPane2)
+                    .addGroup(monitorPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel8)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(patternText, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel13)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel14)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(proxyButton)
-                        .addGap(0, 200, Short.MAX_VALUE)))
+                        .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(102, 102, 102)
+                        .addComponent(proxyButton)))
                 .addContainerGap())
         );
         monitorPanelLayout.setVerticalGroup(
@@ -603,20 +656,20 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addGroup(monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(proxyHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(proxyPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(proxyButton))
+                    .addComponent(proxyButton)
+                    .addGroup(monitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(patternText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel8)
+                        .addComponent(jLabel13))
+                    .addComponent(jLabel14))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jTabbedPane1.addTab("Monitor", monitorPanel);
 
         penetratePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        urlText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-
-        jLabel5.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jLabel5.setText("URL:");
 
         jLabel7.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jLabel7.setText("SSID:");
@@ -630,12 +683,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 jLabel10MouseClicked(evt);
             }
         });
-
-        jLabel8.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        jLabel8.setText("PT:");
-
-        patternText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        patternText.setText("sessionId");
 
         jarExPatch.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         jarExPatch.setText("Select launcher.jar");
@@ -662,8 +709,21 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
 
         pathText.setEditable(true);
         pathText.setFont(new java.awt.Font("Lucida Console", 0, 9)); // NOI18N
-        pathText.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "(, ([a-z0-9\\.]{5,50}), ([0-9]{4,5}),([0-9a-zA-Z\\. ]{1,50}),)", "(([a-z0-9\\.]{5,50}), ([0-9]{4,5}), ([0-9.]{5}),([0-9a-zA-Z ]{5,50}))", " " }));
+        pathText.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "(, ([0-9a-zA-Z-\\.]{5,50}), ([0-9]{4,5}),([0-9a-zA-Z\\. -]{1,50}))", "(([a-z0-9\\.]{5,50}), ([0-9]{4,5}), ([0-9.]{5}),([0-9a-zA-Z ]{5,50}))", " " }));
         pathText.setToolTipText("<html>Find: [649:] u, 11111, 1.2.5,iCraft mcMMO 1, <b>srv1.icraft.su, 22222, 1.2.5,iCraft mcMMO 2</b>, srv5.icraft.su, 22222, 1.2.5-iCraft Ha</html>");
+
+        jLabel11.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel11.setText("LINE:");
+
+        magicLineText.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        magicLineText.setText("16");
+
+        maxGif.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        maxGif.setText("5000");
+        maxGif.setToolTipText("Max");
+
+        jLabel12.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
+        jLabel12.setText("MAX:");
 
         javax.swing.GroupLayout penetratePanelLayout = new javax.swing.GroupLayout(penetratePanel);
         penetratePanel.setLayout(penetratePanelLayout);
@@ -673,23 +733,28 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addContainerGap()
                 .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(penetratePanelLayout.createSequentialGroup()
-                        .addComponent(jarExPatch, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(penGo))
-                    .addGroup(penetratePanelLayout.createSequentialGroup()
                         .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(patternText)
-                            .addComponent(urlText, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(classText, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(ssidText, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pathText, javax.swing.GroupLayout.Alignment.LEADING, 0, 387, Short.MAX_VALUE))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, penetratePanelLayout.createSequentialGroup()
+                                .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(maxGif, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(magicLineText, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(penetratePanelLayout.createSequentialGroup()
+                        .addComponent(jarExPatch, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(penGo)))
                 .addContainerGap())
         );
         penetratePanelLayout.setVerticalGroup(
@@ -697,16 +762,12 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             .addGroup(penetratePanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(urlText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(patternText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(pathText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11)
+                    .addComponent(magicLineText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(maxGif, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel12))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(ssidText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -715,38 +776,20 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(classText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(penetratePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jarExPatch)
                     .addComponent(penGo))
-                .addContainerGap(12, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab("Settings", penetratePanel);
 
-        gifSelect.setEditable(true);
-        gifSelect.setFont(new java.awt.Font("Lucida Console", 0, 10)); // NOI18N
-        gifSelect.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "I.gif", " " }));
-
-        gifStart.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        gifStart.setText("Fing gif");
-
+        gifConsole.setEditable(false);
         gifConsole.setColumns(20);
         gifConsole.setFont(new java.awt.Font("Lucida Console", 0, 9)); // NOI18N
         gifConsole.setRows(5);
         jScrollPane1.setViewportView(gifConsole);
-
-        gifStart1.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        gifStart1.setText("Decrypt");
-        gifStart1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                gifStart1ActionPerformed(evt);
-            }
-        });
-
-        maxGif.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
-        maxGif.setText("5000");
-        maxGif.setToolTipText("Max");
 
         javax.swing.GroupLayout gifPanelLayout = new javax.swing.GroupLayout(gifPanel);
         gifPanel.setLayout(gifPanelLayout);
@@ -754,29 +797,14 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             gifPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gifPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(gifPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1)
-                    .addGroup(gifPanelLayout.createSequentialGroup()
-                        .addComponent(gifStart, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(gifSelect, 0, 205, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(maxGif, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(gifStart1)))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 623, Short.MAX_VALUE)
                 .addContainerGap())
         );
         gifPanelLayout.setVerticalGroup(
             gifPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(gifPanelLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gifPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(gifPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(gifSelect, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(gifStart)
-                    .addComponent(gifStart1)
-                    .addComponent(maxGif, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -791,7 +819,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jTabbedPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -802,8 +830,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1)
-                .addContainerGap())
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE))
         );
 
         pack();
@@ -842,6 +869,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     }//GEN-LAST:event_jarExPatchActionPerformed
 
     private void penGoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_penGoActionPerformed
+        loadClass();
         runExtJar();
     }//GEN-LAST:event_penGoActionPerformed
 
@@ -856,10 +884,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
             ex.printStackTrace();
         }
     }//GEN-LAST:event_jLabel10MouseClicked
-
-    private void gifStart1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gifStart1ActionPerformed
-        loadClass();
-    }//GEN-LAST:event_gifStart1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -901,15 +925,15 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     private javax.swing.JTextArea consoleLog;
     private javax.swing.JTextArea gifConsole;
     private javax.swing.JPanel gifPanel;
-    private javax.swing.JComboBox gifSelect;
-    private javax.swing.JButton gifStart;
-    private javax.swing.JButton gifStart1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -921,6 +945,7 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     private javax.swing.JButton jarExPatch;
     private javax.swing.JComboBox javaVersion;
     private javax.swing.JButton launchButton;
+    private javax.swing.JTextField magicLineText;
     private javax.swing.JTextField maxGif;
     private javax.swing.JPanel monitorPanel;
     private javax.swing.JTextField nameField;
@@ -928,7 +953,6 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     private javax.swing.JComboBox osType;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JComboBox pathText;
-    private javax.swing.JComboBox pathText1;
     private javax.swing.JTextField patternText;
     private javax.swing.JButton penGo;
     private javax.swing.JPanel penetratePanel;
@@ -936,8 +960,8 @@ public class MainFrame extends javax.swing.JFrame implements IFind {
     private javax.swing.JTextField proxyHost;
     private javax.swing.JTextField proxyPort;
     private javax.swing.JCheckBox rBox;
+    private javax.swing.JComboBox serversList;
     private javax.swing.JTextField ssidText;
-    private javax.swing.JTextField urlText;
     private javax.swing.JTextField xms;
     private javax.swing.JTextField xmx;
     // End of variables declaration//GEN-END:variables

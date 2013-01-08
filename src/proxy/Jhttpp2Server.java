@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JTextArea;
 import minecraftstarter.IFind;
 
@@ -58,8 +60,9 @@ public class Jhttpp2Server implements Runnable {
     public String log_access_filename = "paccess.log";
     public boolean webconfig = true;
     public boolean www_server = true;
-    private String matchStr="sessionId";
+    //private String matchStr="sessionId";
     private IFind core;
+    private Pattern pattern;
     //private Thread thread;
 
     void init() {
@@ -108,7 +111,8 @@ public class Jhttpp2Server implements Runnable {
                 + "http://jhttp2.sourceforge.net/");
         this.port=port;
         this.core=core;
-        this.matchStr=matchStr;
+        this.pattern = Pattern.compile(matchStr);
+        //this.matchStr=matchStr;
         init();
     }
 
@@ -298,17 +302,21 @@ public class Jhttpp2Server implements Runnable {
      */
     public void writeLog(String s, boolean b) {
         try {
+            
             if (core!=null) {
+                
                 /*if (s.matches(matchStr)==true) {
                     //logArea.append(s+"\n");
                     //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 }*/
-                if (s.indexOf(matchStr)>0) {
-                    core.find(s);
+                Matcher m = pattern.matcher(s);
+                if (m.find()) {
+                    core.find(m.group(1));
                     //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 }
             }
             s = new Date().toString() + " " + s;
+            core.println(s);
             logfile.write(s, 0, s.length());
             if (b) {
                 logfile.newLine();

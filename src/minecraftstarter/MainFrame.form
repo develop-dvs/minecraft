@@ -3,7 +3,7 @@
 <Form version="1.5" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
-    <Property name="title" type="java.lang.String" value="Simple Minecraft Starter (Divasoft, inc.)"/>
+    <Property name="title" type="java.lang.String" value="Simple Minecraft Starter (by DCRM)"/>
     <Property name="resizable" type="boolean" value="false"/>
   </Properties>
   <SyntheticProperties>
@@ -29,7 +29,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jPanel1" max="32767" attributes="0"/>
                   <Component id="jPanel2" max="32767" attributes="0"/>
-                  <Component id="jTabbedPane1" alignment="0" pref="0" max="32767" attributes="0"/>
+                  <Component id="jTabbedPane1" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -43,8 +43,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jTabbedPane1" max="32767" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jTabbedPane1" pref="131" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -74,7 +73,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="launchButton" min="-2" pref="105" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="pathText1" max="32767" attributes="0"/>
+                  <Component id="serversList" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -86,7 +85,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" attributes="0">
                           <EmptySpace min="1" pref="1" max="-2" attributes="0"/>
-                          <Component id="pathText1" max="32767" attributes="0"/>
+                          <Component id="serversList" max="32767" attributes="0"/>
                       </Group>
                       <Component id="nameField" max="32767" attributes="0"/>
                       <Component id="jLabel1" max="32767" attributes="0"/>
@@ -146,11 +145,11 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="launchButtonActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JComboBox" name="pathText1">
+        <Component class="javax.swing.JComboBox" name="serversList">
           <Properties>
             <Property name="editable" type="boolean" value="true"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Lucida Console" size="12" style="0"/>
+              <Font name="Lucida Console" size="9" style="0"/>
             </Property>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
               <StringArray count="0"/>
@@ -338,14 +337,21 @@
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="jScrollPane2" alignment="0" max="32767" attributes="0"/>
-                          <Group type="102" alignment="0" attributes="0">
+                          <Component id="jScrollPane2" max="32767" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="patternText" pref="185" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel13" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="proxyHost" min="-2" pref="73" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="proxyPort" min="-2" pref="43" max="-2" attributes="0"/>
+                              <Component id="jLabel14" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
+                              <Component id="proxyPort" min="-2" pref="43" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="102" max="-2" attributes="0"/>
                               <Component id="proxyButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="200" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -360,9 +366,15 @@
                           <Component id="proxyHost" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="proxyPort" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="proxyButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" alignment="3" groupAlignment="3" attributes="0">
+                              <Component id="patternText" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabel13" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="jLabel14" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="jScrollPane2" pref="126" max="32767" attributes="0"/>
+                      <Component id="jScrollPane2" pref="73" max="32767" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -415,6 +427,38 @@
                 <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="proxyButtonItemStateChanged"/>
               </Events>
             </Component>
+            <Component class="javax.swing.JLabel" name="jLabel8">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="PT:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="patternText">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="sessionId=([0-9]{5,50})"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel13">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="HOST:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel14">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="PORT:"/>
+              </Properties>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="penetratePanel">
@@ -440,26 +484,32 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jarExPatch" pref="374" max="32767" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="penGo" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
                               <Group type="103" groupAlignment="1" max="-2" attributes="0">
                                   <Component id="jLabel7" alignment="0" max="32767" attributes="0"/>
                                   <Component id="jLabel10" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="jLabel8" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="jLabel5" alignment="0" max="32767" attributes="0"/>
                                   <Component id="jLabel9" max="32767" attributes="0"/>
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="patternText" alignment="1" max="32767" attributes="0"/>
-                                  <Component id="urlText" alignment="0" max="32767" attributes="0"/>
                                   <Component id="classText" alignment="1" max="32767" attributes="0"/>
                                   <Component id="ssidText" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="pathText" alignment="0" pref="387" max="32767" attributes="0"/>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="pathText" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="32767" attributes="0"/>
+                                      <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="maxGif" min="-2" pref="44" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jLabel11" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="magicLineText" min="-2" pref="58" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="jarExPatch" pref="560" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="penGo" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -471,18 +521,12 @@
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="urlText" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="patternText" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="pathText" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="magicLineText" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="maxGif" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel12" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -494,32 +538,17 @@
                           <Component id="classText" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jarExPatch" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="penGo" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="12" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="javax.swing.JTextField" name="urlText">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JLabel" name="jLabel5">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="URL:"/>
-              </Properties>
-            </Component>
             <Component class="javax.swing.JLabel" name="jLabel7">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
@@ -545,22 +574,6 @@
               <Events>
                 <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jLabel10MouseClicked"/>
               </Events>
-            </Component>
-            <Component class="javax.swing.JLabel" name="jLabel8">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="PT:"/>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JTextField" name="patternText">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="sessionId"/>
-              </Properties>
             </Component>
             <Component class="javax.swing.JButton" name="jarExPatch">
               <Properties>
@@ -615,12 +628,45 @@
                 </Property>
                 <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
                   <StringArray count="3">
-                    <StringItem index="0" value="(, ([a-z0-9\.]{5,50}), ([0-9]{4,5}),([0-9a-zA-Z\. ]{1,50}),)"/>
+                    <StringItem index="0" value="(, ([0-9a-zA-Z-\.]{5,50}), ([0-9]{4,5}),([0-9a-zA-Z\. -]{1,50}))"/>
                     <StringItem index="1" value="(([a-z0-9\.]{5,50}), ([0-9]{4,5}), ([0-9.]{5}),([0-9a-zA-Z ]{5,50}))"/>
                     <StringItem index="2" value=" "/>
                   </StringArray>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Find: [649:] u, 11111, 1.2.5,iCraft mcMMO 1, &lt;b&gt;srv1.icraft.su, 22222, 1.2.5,iCraft mcMMO 2&lt;/b&gt;, srv5.icraft.su, 22222, 1.2.5-iCraft Ha&lt;/html&gt;"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel11">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="LINE:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="magicLineText">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="16"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="maxGif">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="5000"/>
+                <Property name="toolTipText" type="java.lang.String" value="Max"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel12">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Lucida Console" size="12" style="0"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="MAX:"/>
               </Properties>
             </Component>
           </SubComponents>
@@ -639,62 +685,22 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="jScrollPane1" max="32767" attributes="0"/>
-                          <Group type="102" attributes="0">
-                              <Component id="gifStart" min="-2" pref="89" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="gifSelect" pref="205" max="32767" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="maxGif" min="-2" pref="44" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="gifStart1" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
+                      <Component id="jScrollPane1" pref="623" max="32767" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="gifSelect" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="gifStart" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="gifStart1" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="maxGif" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jScrollPane1" pref="126" max="32767" attributes="0"/>
+                      <Component id="jScrollPane1" pref="100" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="javax.swing.JComboBox" name="gifSelect">
-              <Properties>
-                <Property name="editable" type="boolean" value="true"/>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="10" style="0"/>
-                </Property>
-                <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                  <StringArray count="2">
-                    <StringItem index="0" value="I.gif"/>
-                    <StringItem index="1" value=" "/>
-                  </StringArray>
-                </Property>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JButton" name="gifStart">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Fing gif"/>
-              </Properties>
-            </Component>
             <Container class="javax.swing.JScrollPane" name="jScrollPane1">
               <AuxValues>
                 <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
@@ -704,6 +710,7 @@
               <SubComponents>
                 <Component class="javax.swing.JTextArea" name="gifConsole">
                   <Properties>
+                    <Property name="editable" type="boolean" value="false"/>
                     <Property name="columns" type="int" value="20"/>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Lucida Console" size="9" style="0"/>
@@ -713,26 +720,6 @@
                 </Component>
               </SubComponents>
             </Container>
-            <Component class="javax.swing.JButton" name="gifStart1">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Decrypt"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="gifStart1ActionPerformed"/>
-              </Events>
-            </Component>
-            <Component class="javax.swing.JTextField" name="maxGif">
-              <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Lucida Console" size="12" style="0"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="5000"/>
-                <Property name="toolTipText" type="java.lang.String" value="Max"/>
-              </Properties>
-            </Component>
           </SubComponents>
         </Container>
       </SubComponents>

@@ -298,13 +298,6 @@ public class Jhttpp2Server implements Runnable {
      */
     public void writeLog(String s, boolean b) {
         try {
-            s = new Date().toString() + " " + s;
-            logfile.write(s, 0, s.length());
-            if (b) {
-                logfile.newLine();
-            }
-            logfile.flush();
-            
             if (core!=null) {
                 /*if (s.matches(matchStr)==true) {
                     //logArea.append(s+"\n");
@@ -315,6 +308,12 @@ public class Jhttpp2Server implements Runnable {
                     //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 }
             }
+            s = new Date().toString() + " " + s;
+            logfile.write(s, 0, s.length());
+            if (b) {
+                logfile.newLine();
+            }
+            logfile.flush();
             if (debug) {
                 System.out.println(s);
             }

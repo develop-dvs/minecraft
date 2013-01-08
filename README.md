@@ -10,6 +10,7 @@ Simple Minecraft Starter (Launcher|Namechanger)
  * manual select JRE version (6/7/8)
  * manual setup -Xms & -Xmx
 
-Pentest
+Pentest :3
 =========
  * can autofind sessionId and start without MD5 check client
+ * can decrypt I.gif obfuscated files and find ip:port and Server alias

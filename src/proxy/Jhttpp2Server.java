@@ -55,7 +55,7 @@ public class Jhttpp2Server implements Runnable {
     public boolean use_proxy = false;
     public static boolean block_urls = false;
     public boolean filter_http = false;
-    public boolean debug = false;
+    public boolean debug = true;
     public boolean log_access = false;
     public String log_access_filename = "paccess.log";
     public boolean webconfig = true;
@@ -232,7 +232,7 @@ public class Jhttpp2Server implements Runnable {
         http_useragent = serverproperties.getProperty("server.filter.http.useragent", "Mozilla/4.0 (compatible; MSIE 4.0; WindowsNT 5.0)");
         filter_http = new Boolean(serverproperties.getProperty("server.filter.http", "false")).booleanValue();
         enable_cookies_by_default = new Boolean(serverproperties.getProperty("server.enable-cookies-by-default", "true")).booleanValue();
-        debug = new Boolean(serverproperties.getProperty("server.debug-logging", "false")).booleanValue();
+        debug = new Boolean(serverproperties.getProperty("server.debug-logging", "true")).booleanValue();
         port = new Integer(serverproperties.getProperty("server.port", "8088")).intValue();
         log_access = new Boolean(serverproperties.getProperty("server.access.log", "false")).booleanValue();
         log_access_filename = serverproperties.getProperty("server.access.log.filename", "paccess.log");

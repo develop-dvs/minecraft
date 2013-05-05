@@ -12,6 +12,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /**
@@ -51,10 +52,17 @@ public class MainFrame extends javax.swing.JFrame {
         }
         patch = buildMinecraftPatch();
         dumpContents(patch);
-
+        patchButton.setText(patch);
         nameField.requestFocusInWindow();
         def = true;
-
+    }
+    
+    public void setPatch() {
+        JFileChooser jfc = new JFileChooser();
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            patchButton.setText(jfc.getSelectedFile().getAbsolutePath());
+        }
     }
 
     public void launch() {
@@ -186,6 +194,7 @@ public class MainFrame extends javax.swing.JFrame {
         xms = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         javaVersion = new javax.swing.JComboBox();
+        patchButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Simple Minecraft Starter (Divasoft, inc.)");
@@ -335,6 +344,13 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        patchButton.setText("patch");
+        patchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                patchButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -343,7 +359,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(patchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -353,6 +370,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(patchButton)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -386,6 +405,10 @@ public class MainFrame extends javax.swing.JFrame {
             launch();
         }
     }//GEN-LAST:event_passwordFieldKeyReleased
+
+    private void patchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_patchButtonActionPerformed
+        setPatch();
+    }//GEN-LAST:event_patchButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -435,6 +458,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox osArch;
     private javax.swing.JComboBox osType;
     private javax.swing.JPasswordField passwordField;
+    private javax.swing.JButton patchButton;
     private javax.swing.JCheckBox rBox;
     private javax.swing.JTextField xms;
     private javax.swing.JTextField xmx;

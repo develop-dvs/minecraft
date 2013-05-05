@@ -58,10 +58,11 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     public void setPatch() {
-        JFileChooser jfc = new JFileChooser();
+        JFileChooser jfc = new JFileChooser(patch);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            patchButton.setText(jfc.getSelectedFile().getAbsolutePath());
+            patch=jfc.getSelectedFile().getAbsolutePath();
+            patchButton.setText(patch);
         }
     }
 

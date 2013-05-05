@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -26,6 +27,7 @@ public class MainFrame extends javax.swing.JFrame {
     private String Q = "\"";
     private String ext = ".exe";
     private String patch = "";
+    private Process process;
 
     /**
      * Creates new form MainFrame
@@ -65,8 +67,50 @@ public class MainFrame extends javax.swing.JFrame {
             patchButton.setText(patch);
         }
     }
-
+    
     public void launch() {
+        String java = getJavaHome() + S + "java" + ext;
+        if (!new File(java).exists()) {
+            JOptionPane.showMessageDialog(rootPane, java, "JRE not found", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        java = Q + java + Q;
+
+        ArrayList<String> params = new ArrayList<String>();
+        params.add(java);
+        params.add("-Xms" + xms.getText().trim() + "m");
+        params.add("-Xmx" + xmx.getText().trim() + "m");
+        params.add("-cp");
+        params.add(Q
+                + patch + S + "bin" + S + "minecraft.jar;"
+                + patch + S + "bin" + S + "lwjgl.jar;"
+                + patch + S + "bin" + S + "lwjgl_util.jar;"
+                + patch + S + "bin" + S + "jinput.jar;"
+                + Q);
+        params.add("-Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q);
+        params.add("net.minecraft.client.Minecraft");
+        params.add(nameField.getText().trim());
+        if (passwordField.getPassword().length != 0) {
+            params.add(new String(passwordField.getPassword()));
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(params);
+            String dbg="";
+            for (String string : params) {
+                dbg+=string+" ";
+            }
+            System.out.println(dbg);
+            process = pb.start();
+            
+            writeUsername(patch);
+        } catch (Exception ex) {
+            System.err.println(ex.getLocalizedMessage());
+        }
+    }
+    
+    @Deprecated
+    public void launch_exec() {
         String java = getJavaHome() + S + "java" + ext;
         if (!new File(java).exists()) {
             JOptionPane.showMessageDialog(rootPane, java,"JRE not found",JOptionPane.ERROR_MESSAGE);
@@ -89,9 +133,7 @@ public class MainFrame extends javax.swing.JFrame {
         } catch (Exception ex) {
             System.err.println(ex.getLocalizedMessage());
         }
-
         System.exit(1);
-
     }
 
     public String getJavaHome() {
@@ -199,6 +241,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Simple Minecraft Starter (Divasoft, inc.)");
+        setAlwaysOnTop(true);
         setResizable(false);
         setType(java.awt.Window.Type.UTILITY);
 

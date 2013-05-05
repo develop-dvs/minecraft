@@ -6,9 +6,6 @@
     <Property name="title" type="java.lang.String" value="Simple Minecraft Starter (Divasoft, inc.)"/>
     <Property name="alwaysOnTop" type="boolean" value="true"/>
     <Property name="resizable" type="boolean" value="false"/>
-    <Property name="type" type="java.awt.Window$Type" editor="org.netbeans.modules.form.editors.EnumEditor">
-      <Value id="UTILITY"/>
-    </Property>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -297,7 +294,7 @@
     </Container>
     <Component class="javax.swing.JButton" name="patchButton">
       <Properties>
-        <Property name="text" type="java.lang.String" value="patch"/>
+        <Property name="text" type="java.lang.String" value="Current mc dir: Auto"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="patchButtonActionPerformed"/>

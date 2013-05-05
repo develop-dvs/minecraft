@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.crypto.Cipher;
@@ -24,10 +26,12 @@ public class MainFrame extends javax.swing.JFrame {
 
     private boolean def;
     private String S = SystemUtils.FILE_SEPARATOR;
+    private String Qo = "\\\"";
     private String Q = "\"";
     private String ext = ".exe";
     private String patch = "";
     private Process process;
+    private String MINECRAFT_BAT = "minecraft.cmd";
 
     /**
      * Creates new form MainFrame
@@ -63,9 +67,22 @@ public class MainFrame extends javax.swing.JFrame {
         JFileChooser jfc = new JFileChooser(patch);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            patch=jfc.getSelectedFile().getAbsolutePath();
+            patch=(getDataFolder().equals(jfc.getSelectedFile().getAbsolutePath()+S))?"":jfc.getSelectedFile().getAbsolutePath()+S;
             patchButton.setText(patch);
         }
+    }
+        
+    public String getDataFolder() {
+        try { 
+            return new File(MainFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().toString()+S;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "";
+        }
+    }
+    
+    public String getPatch() {
+        return patch;
     }
     
     public void launch() {
@@ -74,43 +91,85 @@ public class MainFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, java, "JRE not found", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        java = Q + java + Q;
-
+                 
+        StringBuilder cp = new StringBuilder();
+        for (String p : new String[]{"minecraft.jar", "lwjgl.jar", "lwjgl_util.jar", "jinput.jar"}) {
+            cp.append(patch).append("bin").append(S);
+            cp.append(p);
+            cp.append(File.pathSeparatorChar);
+        }
+        
+        //java = Q + java + Q;
+        //https://bitbucket.org/prupe/mcpatcher/src/370ac3d0b4aa5b031edcd5b80b91f2127cd62dea/src/com/prupe/mcpatcher/MinecraftJar.java
         ArrayList<String> params = new ArrayList<String>();
-        params.add(java);
+        params.add("java");
+        //params.add(java);
         params.add("-Xms" + xms.getText().trim() + "m");
         params.add("-Xmx" + xmx.getText().trim() + "m");
         params.add("-cp");
-        params.add(Q
-                + patch + S + "bin" + S + "minecraft.jar;"
-                + patch + S + "bin" + S + "lwjgl.jar;"
-                + patch + S + "bin" + S + "lwjgl_util.jar;"
-                + patch + S + "bin" + S + "jinput.jar;"
-                + Q);
-        params.add("-Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q);
+        params.add(Q+cp.toString()+Q);
+        params.add("-Djava.library.path=" + Q + patch + "bin" + S + "natives" + Q);
+        
         params.add("net.minecraft.client.Minecraft");
         params.add(nameField.getText().trim());
+        
         if (passwordField.getPassword().length != 0) {
             params.add(new String(passwordField.getPassword()));
         }
+        
 
+        
         try {
-            ProcessBuilder pb = new ProcessBuilder(params);
-            String dbg="";
-            for (String string : params) {
-                dbg+=string+" ";
-            }
-            System.out.println(dbg);
-            process = pb.start();
-            
+            //String[] paramsExec = params.toArray(new String[params.size()]);
+            //Runtime.getRuntime().exec("java",paramsExec,new File(getJavaHome()));
             writeUsername(patch);
+            createBAT(Q+java+Q,params);
+            if (patch.contains(" ")) {
+                JOptionPane.showMessageDialog(rootPane, "Minecraft directory contains a space symbols!\nTry running "+MINECRAFT_BAT,"Warring!",JOptionPane.WARNING_MESSAGE);
+                if (osType.getSelectedIndex()==0) {
+                    
+                    Runtime.getRuntime().exec(MINECRAFT_BAT, null, new File("."));
+                    System.exit(0);
+                }
+            }
+
+            ProcessBuilder pb = new ProcessBuilder(params);
+            pb.directory(new File(getJavaHome()));
+            pb.redirectErrorStream(true);
+            process = pb.start();
+
+            if (process==null) {
+                System.err.println("Fatal error!");
+            } else {
+                System.exit(1);
+            }
+            
+            
         } catch (Exception ex) {
             System.err.println(ex.getLocalizedMessage());
         }
     }
     
+    public void createBAT(String str,ArrayList<String> paramsIn) {
+        ArrayList<String> params = new ArrayList<String>(paramsIn);
+        params.remove(0);
+        String dbg="";
+        for (String string : params) {
+            dbg+=string+" ";
+        }
+        System.out.println(str+" "+dbg);
+        try {
+            PrintStream ps = new PrintStream(MINECRAFT_BAT);
+            ps.print(str+" "+dbg);
+            ps.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    
     @Deprecated
-    public void launch_exec() {
+    public void launch_q() {
         String java = getJavaHome() + S + "java" + ext;
         if (!new File(java).exists()) {
             JOptionPane.showMessageDialog(rootPane, java,"JRE not found",JOptionPane.ERROR_MESSAGE);
@@ -125,7 +184,7 @@ public class MainFrame extends javax.swing.JFrame {
                 + Q
                 + " -Djava.library.path=" + Q + patch + S + "bin" + S + "natives" + Q
                 + " net.minecraft.client.Minecraft " + nameField.getText().trim() + ((passwordField.getPassword().length==0)?"":" "+new String(passwordField.getPassword()));
-
+       // exec='"'+exec+'"';
         System.out.println(exec);
         try {
             Runtime.getRuntime().exec(exec);
@@ -158,13 +217,13 @@ public class MainFrame extends javax.swing.JFrame {
         String dataFolder = "";
         if (new File("bin").exists() && new File("resources").exists()) {
             try {
-                dataFolder = new File(MainFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().toString();
+                dataFolder = getDataFolder();
             } catch (Exception ex) {
                 dataFolder = "";
                 System.err.println(ex.getLocalizedMessage());
             }
         }
-        return (dataFolder.isEmpty()) ? System.getenv("APPDATA") + S + ".minecraft" : dataFolder;
+        return (dataFolder.isEmpty()) ? System.getenv("APPDATA") + S + ".minecraft"+S : dataFolder;
     }
 
     private void dumpContents(String path) {
@@ -243,7 +302,6 @@ public class MainFrame extends javax.swing.JFrame {
         setTitle("Simple Minecraft Starter (Divasoft, inc.)");
         setAlwaysOnTop(true);
         setResizable(false);
-        setType(java.awt.Window.Type.UTILITY);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -388,7 +446,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        patchButton.setText("patch");
+        patchButton.setText("Current mc dir: Auto");
         patchButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 patchButtonActionPerformed(evt);
